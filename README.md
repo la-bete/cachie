@@ -30,6 +30,8 @@ npm start
 
 The server listens on port `9000` by default. `npm run dev` runs it under nodemon.
 
+Logs are pretty-printed with pino-pretty in development. With `NODE_ENV=production`, or when dev dependencies are not installed, they are written as plain JSON lines.
+
 ## Configuration
 
 Settings come from environment variables. A `.env` file in the project root is loaded on startup.
@@ -41,6 +43,7 @@ Settings come from environment variables. A `.env` file in the project root is l
 | `RATE_LIMIT_MAX`       | `100`   | Requests allowed per client in one window                               |
 | `RATE_LIMIT_WINDOW_MS` | `900`   | Length of the rate-limit window, **in seconds** despite the `_MS` name  |
 | `LOG_LEVEL`            | `info`  | pino log level                                                          |
+| `NODE_ENV`             | (unset) | `production` turns off pretty logging                                   |
 
 ```
 PORT=9000
@@ -53,7 +56,7 @@ Rate limiting applies to `POST /search` only and is keyed on the `client_id` in 
 
 ## API
 
-The OpenAPI 3 spec lives in `src/api.yml` and is served as-is at `GET /spec`. Requests that do not match it are rejected with `400`, and responses are checked against it too. Errors use the shape `{ "status": "error", "message": "..." }`. Unknown routes return `404`.
+The OpenAPI 3 spec lives in `src/api.yml` and is served as YAML at `GET /spec`. Requests that do not match it are rejected with `400`, and responses are checked against it too. Errors use the shape `{ "status": "error", "message": "..." }`. Unknown routes return `404`.
 
 An `x-trace-id` header (or body or query field) is attached to the request logs. If none is sent, one is generated.
 
@@ -124,19 +127,21 @@ npx jest tests/e2e.test.js
 npx jest --coverage
 ```
 
-The end-to-end tests import `src/app.js`, which starts listening on `PORT`, so make sure that port is free before running them.
+The end-to-end tests import `src/app.js`, which starts listening on `PORT`, so make sure that port is free (or set `PORT`) before running them, for example `PORT=9100 npx jest --forceExit`.
 
 ## Limitations
 
 - State lives in process memory. It is lost on restart and is not shared between instances.
 - Indexing a search compares every new phrase against every key in the cache, so write cost grows with the size of the cache. This is fine for a single process with modest traffic, not for a large index.
 - Expired entries are only removed when read, so phrases that are never looked up again stay in memory.
+- Importing `src/app.js` starts the server, so the tests bind a real port and Jest does not exit on its own without `--forceExit`.
 
 ## Next steps
 
 - Move the index to Redis (sorted sets per phrase) so it survives restarts and scales across instances.
 - Replace the linear fuzzy-match scan with a proper substring or n-gram index.
 - Periodically sweep expired entries.
+- Split the Express app from the `listen` call so tests can run without binding a port.
 
 ## License
 
