@@ -1,7 +1,7 @@
 {
 	"name": "cachie",
 	"version": "0.0.0",
-	"description": "REST API server for an in-memory cache analytics engine",
+	"description": "Search-token analytics over an in-memory TTL cache, with exact and fuzzy matching and an OpenAPI-validated REST API",
 	"main": "src/app.js",
 	"scripts": {
 		"start": "node src/app.js",
@@ -15,13 +15,13 @@
 	"license": "MIT",
 	"dependencies": {
 		"cors": "^2.8.5",
+		"dotenv": "^16.4.7",
 		"express": "^4.18.2",
 		"express-openapi-validator": "^5.4.2",
 		"express-rate-limit": "^7.5.0",
 		"pino": "^9.6.0"
 	},
 	"devDependencies": {
-		"dotenv": "^16.4.7",
 		"eslint": "^8.54.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-prettier": "^5.2.1",

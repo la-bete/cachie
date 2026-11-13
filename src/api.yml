@@ -5,7 +5,7 @@ info:
   description: An in-memory cache analytics engine that tracks search patterns with support for pattern matching, statistical analysis, and client tracking.
   version: 1.0.0
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:9000
     description: Local development server
 
 paths:
