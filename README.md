@@ -16,7 +16,7 @@ Cachie is a small search-token analytics service. Every search it receives is br
 - `POST /search` normalises the query (trimmed, lower-cased, whitespace collapsed) and indexes every contiguous run of words in it. `"The quick brown fox"` indexes `the`, `the quick`, `quick brown fox` and so on.
 - Each indexed phrase records the full searches it appeared in exactly, plus the searches it fuzzy-matches: phrases where one contains the other as a substring, so `quick` also matches a search for `quickly moving`.
 - The full search keeps a per-client count and the set of sessions it came from. Repeating the same search from the same client and session is a no-op.
-- Cache entries expire `CACHE_TTL` seconds after they were last written. Expired entries are dropped when they are next read.
+- Each phrase expires `CACHE_TTL` seconds after it was first indexed. Later searches update the entry in place without extending its lifetime, so a phrase that keeps being searched still expires on schedule and then starts again from zero. Expired entries are dropped when they are next read.
 - `GET /analyse` looks up one or more phrases and returns match counts, client distribution and session counts, with optional totals across the whole result set.
 
 ## Getting started
@@ -134,6 +134,7 @@ The end-to-end tests import `src/app.js`, which starts listening on `PORT`, so m
 - State lives in process memory. It is lost on restart and is not shared between instances.
 - Indexing a search compares every new phrase against every key in the cache, so write cost grows with the size of the cache. This is fine for a single process with modest traffic, not for a large index.
 - Expired entries are only removed when read, so phrases that are never looked up again stay in memory.
+- The TTL is fixed from first insert rather than sliding, so counts for popular phrases reset every `CACHE_TTL` seconds.
 - Importing `src/app.js` starts the server, so the tests bind a real port and Jest does not exit on its own without `--forceExit`.
 
 ## Next steps
