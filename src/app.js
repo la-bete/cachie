@@ -20,7 +20,13 @@ app.use((_, res, next) => {
 app.use(cors());
 app.use(express.json());
 app.use(traceIdFetchMiddleware);
-app.use("/spec", express.static(path.join(__dirname, "api.yml")));
+app.use(
+	"/spec",
+	express.static(path.join(__dirname, "api.yml"), {
+		// Override the JSON default set above; the spec is YAML.
+		setHeaders: (res) => res.setHeader("Content-Type", "application/yaml; charset=utf-8"),
+	}),
+);
 
 app.use(
 	OpenApiValidator.middleware({
